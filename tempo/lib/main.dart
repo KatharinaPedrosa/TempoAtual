@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -37,24 +36,35 @@ class _MyHomePageState extends State<MyHomePage> {
       color: Colors.white, fontSize: 62.0, fontWeight: FontWeight.w600);
 
   final TextStyle estiloTempo = TextStyle(
-      color: Colors.white, fontSize: 22.0, fontWeight: FontWeight.w600);
+      color: Colors.white, fontSize: 35.0, fontWeight: FontWeight.w600);
 
+  String cep;
   String local;
+  var estado;
   var temperatura;
-  var umidade;
   var descricaoTempo;
-  var velocidadeVento;
+  String iconeId;
+  String icon;
 
   Future getWeather() async {
+    http.Response responseCep =
+        await http.get("https://viacep.com.br/ws/$cep/json/");
+    var resultCep = jsonDecode(responseCep.body);
+
+    setState(() {
+      this.local = resultCep['localidade'];
+      this.estado = resultCep['uf'];
+    });
+
     http.Response response = await http.get(
-        "http://api.openweathermap.org/data/2.5/weather?q=$local&Brazil&appid=e8962427977895dc7b82576019a60ef1");
+        "http://api.openweathermap.org/data/2.5/weather?q=$local&Brazil&appid=e8962427977895dc7b82576019a60ef1&lang=pt_br");
     var results = jsonDecode(response.body);
 
     setState(() {
       this.temperatura = results['main']['temp'] - 273.15;
-      this.descricaoTempo = results['weather'][0]['main'];
-      this.umidade = results['main']['humidity'];
-      this.velocidadeVento = results['wind']['speed'];
+      this.descricaoTempo = results['weather'][0]['description'];
+      this.iconeId = results['weather'][0]['icon'];
+      this.icon = "http://openweathermap.org/img/wn/$iconeId@2x.png";
     });
   }
 
@@ -85,6 +95,20 @@ class _MyHomePageState extends State<MyHomePage> {
                 Padding(
                     padding: EdgeInsets.only(top: 30.0),
                     child: Center(
+                        child: Text(
+                      this.local != null ? this.local.toString() : " ",
+                      style: estiloTempo,
+                    ))),
+                Padding(
+                    padding: EdgeInsets.only(top: 30.0),
+                    child: Center(
+                        child: Text(
+                      this.estado != null ? this.estado.toString() : " ",
+                      style: estiloTempo,
+                    ))),
+                Padding(
+                    padding: EdgeInsets.only(top: 30.0),
+                    child: Center(
                         child: Padding(
                             padding: EdgeInsets.only(left: 10.0),
                             child: Text(
@@ -92,7 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ? num.parse(this.temperatura.toString())
                                           .toStringAsPrecision(2) +
                                       "°"
-                                  : "Carregando",
+                                  : " ",
                               style: estiloTemperatura,
                             )))),
                 Padding(
@@ -101,17 +125,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: Text(
                       this.descricaoTempo != null
                           ? this.descricaoTempo.toString()
-                          : "Carregando",
+                          : " ",
                       style: estiloTempo,
                     ))),
                 Padding(
                     padding: EdgeInsets.only(top: 30.0),
                     child: Center(
-                        child: Text(
-                      this.umidade != null
-                          ?  "Hum   " + this.umidade.toString()  + "%"
-                          : "Carregando",
-                      style: estiloTempo,
+                        child: Image.network(
+                      this.icon != null ? this.icon.toString() : " ",
                     ))),
               ]),
         )
@@ -128,16 +149,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 borderRadius: BorderRadius.circular(32)),
             child: new TextFormField(
               decoration: InputDecoration(
-                  hintText: 'Cidade',
+                  hintText: 'Cep',
                   hintStyle: TextStyle(color: Colors.white, fontSize: 30.0),
                   suffixIcon: Icon(Icons.search),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.all(20)),
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white, fontSize: 30.0),
-              validator: _validarLocal,
+              validator: _validarCep,
               onSaved: (String val) {
-                local = val;
+                cep = val;
               },
               onEditingComplete: sendForm,
             )),
@@ -145,13 +166,13 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  String _validarLocal(String value) {
-    String patttern = r'(^[a-zA-Z ]*$)';
+  String _validarCep(String value) {
+    String patttern = r'(^[0-9]*$)';
     RegExp regExp = new RegExp(patttern);
     if (value.length == 0) {
-      return "Informe o local";
+      return "Informe o cep";
     } else if (!regExp.hasMatch(value)) {
-      return "O local deve ter apenas caracteres de a-z ou A-Z";
+      return "O cep deve ter apenas caracteres de 0-9";
     }
     return null;
   }
