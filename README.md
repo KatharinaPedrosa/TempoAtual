@@ -1,3 +1,7 @@
 # TempoAtual
+Trabalho realizado pela equipe: Daniel, Júlia e Tiele.
+Para a disciplina de Sistemas Distribuídos e Mobile
 
-O usuário digitará o cep e confirmará. A partir disso, o programa exibirá os dados de:  cidade, estado, temperatura e descrição do tempo. 
+
+
+<img src=”"C:\Users\katha\Downloads\app.jpg"”>
